@@ -1,0 +1,151 @@
+﻿@model List<Person>
+
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<style>
+    table {
+        border-spacing: 0;
+        width: 100%;
+        border: 1px solid #ddd;
+    }
+
+    th {
+        cursor: pointer;
+    }
+
+    th, td {
+        text-align: left;
+        padding: 12px;
+    }
+
+    tbody tr:nth-child(even) {
+        background-color: #f2f2f2
+    }
+
+    .input-with-100 {
+        width: 100%;
+    }
+
+    table.sortable thead tr {
+        background-color: #eee;
+        color: #666666;
+        font-weight: bold;
+        cursor: default;
+    }
+</style>
+
+<h2>Index</h2>
+
+
+<table border="1">
+    <tr>
+        <td style="width: 28%"> <input id="inputName" type="text" class="input-with-100" placeholder="Name" onkeydown="doFilter()" /> </td>
+        <td style="width: 28%"> <input id="inputLastName" type="text" class="input-with-100" placeholder="LastName" onkeydown="doFilter()" /> </td>
+        <td style="width: 15%"> <input id="inputAge" type="text" class="input-with-100" placeholder="Age" onkeydown="doFilter()" /> </td>
+        <td style="width: 29%"> <input id="inputSalary" type="text" class="input-with-100" placeholder="Salary" onkeydown="doFilter()" /> </td>
+    </tr>
+</table>
+<table id="tableResult" border="1" class="sortable">
+    <thead>
+        <tr>
+            <th style="width: 28%"><b>Name</b></th>
+            <th style="width: 28%"><b>LastName</b></th>
+            <th style="width: 15%"><b>Age</b></th>
+            <th style="width: 29%"><b>Salary</b></th>
+        </tr>
+    </thead>
+    <tbody id="tbodyTableResult">
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Name</td>
+                <td>@item.LastName</td>
+                <td>@item.Age</td>
+                <td>@item.Salary</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<script src="~/js/sorttable.js"></script>
+<script>
+    var delayTimer
+
+    function doFilter() {
+        clearTimeout(delayTimer)
+        delayTimer = setTimeout(function () { filterTable() }, 500)
+    }
+
+    function filterTable() {
+        var name = document.getElementById('inputName').value
+        var lastName = document.getElementById('inputLastName').value
+        var age = document.getElementById('inputAge').value
+        var salary = document.getElementById('inputSalary').value
+
+        var params = ''
+
+        if (name != '') {
+            params += '?name=' + name
+        }
+
+        if (lastName != '') {
+            if (params.length > 0) {
+                params += '&lastName=' + lastName
+            } else {
+                params += '?lastName=' + lastName
+            }
+        }
+
+        if (age != '') {
+            if (params.length > 0) {
+                params += '&age=' + age
+            } else {
+                params += '?age=' + age
+            }
+        }
+
+        if (salary != '') {
+            if (params.length > 0) {
+                params += '&salary=' + salary
+            } else {
+                params += '?salary=' + salary
+            }
+        }
+
+        ajaxGet('/Persons/GetData' + params, function (res) {
+            insertRows(res)
+        })
+    }
+
+    function ajaxGet(url, callback) {
+        var xmlhttp = new XMLHttpRequest()
+        xmlhttp.onreadystatechange = function () {
+            if (this.readyState == 4 && this.status == 200) {
+                callback(JSON.parse(this.responseText))
+            }
+        }
+        xmlhttp.open("GET", url, true)
+        xmlhttp.send()
+    }
+
+    function deleteAllRows() {
+        document.getElementById('tbodyTableResult').innerHTML = ""
+    }
+
+    function insertRows(rows) {
+        deleteAllRows()
+        var tbody = document.getElementById('tbodyTableResult')
+        for (var i = 0; i < rows.length; i++) {
+            var row = tbody.insertRow(i)
+            row.insertCell(0).innerHTML = rows[i].name
+            row.insertCell(1).innerHTML = rows[i].lastName
+            row.insertCell(2).innerHTML = rows[i].age
+            row.insertCell(3).innerHTML = rows[i].salary
+        }
+    }
+
+
+</script>
